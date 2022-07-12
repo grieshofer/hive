@@ -8,19 +8,22 @@ import 'package:hive/src/backend/storage_backend.dart';
 
 /// Opens IndexedDB databases
 class BackendManager implements BackendManagerInterface {
-  IdbFactory? get indexedDB => js.context.hasProperty('window')
-      ? window.indexedDB
-      : WorkerGlobalScope.instance.indexedDB;
+  IdbFactory? get indexedDB =>
+      js.context.hasProperty('window')
+          ? window.indexedDB
+          : WorkerGlobalScope.instance.indexedDB;
 
   @override
   Future<StorageBackend> open(String name, String? path, bool crashRecovery,
       HiveCipher? cipher, String? collection) async {
+    return StorageBackendMemory(null, cipher);
+
     // compatibility for old store format
     final databaseName = collection ?? name;
     final objectStoreName = collection == null ? 'box' : name;
 
     var db =
-        await indexedDB!.open(databaseName, version: 1, onUpgradeNeeded: (e) {
+    await indexedDB!.open(databaseName, version: 1, onUpgradeNeeded: (e) {
       var db = e.target.result as Database;
       if (!(db.objectStoreNames ?? []).contains(objectStoreName)) {
         db.createObjectStore(objectStoreName);
@@ -46,14 +49,13 @@ class BackendManager implements BackendManagerInterface {
   }
 
   @override
-  Future<Map<String, StorageBackend>> openCollection(
-      Set<String> names,
+  Future<Map<String, StorageBackend>> openCollection(Set<String> names,
       String? path,
       bool crashRecovery,
       HiveCipher? cipher,
       String collection) async {
     var db =
-        await indexedDB!.open(collection, version: 1, onUpgradeNeeded: (e) {
+    await indexedDB!.open(collection, version: 1, onUpgradeNeeded: (e) {
       var db = e.target.result as Database;
       for (var objectStoreName in names) {
         if (!(db.objectStoreNames ?? []).contains(objectStoreName)) {
@@ -94,7 +96,7 @@ class BackendManager implements BackendManagerInterface {
       await indexedDB!.deleteDatabase(databaseName);
     } else {
       final db =
-          await indexedDB!.open(databaseName, version: 1, onUpgradeNeeded: (e) {
+      await indexedDB!.open(databaseName, version: 1, onUpgradeNeeded: (e) {
         var db = e.target.result as Database;
         if ((db.objectStoreNames ?? []).contains(objectStoreName)) {
           db.deleteObjectStore(objectStoreName);
@@ -121,7 +123,7 @@ class BackendManager implements BackendManagerInterface {
         });
       } else {
         final db =
-            await indexedDB!.open(collection, version: 1, onUpgradeNeeded: (e) {
+        await indexedDB!.open(collection, version: 1, onUpgradeNeeded: (e) {
           var db = e.target.result as Database;
           _exists = (db.objectStoreNames ?? []).contains(objectStoreName);
         });
