@@ -27,7 +27,8 @@ class BackendManager implements BackendManagerInterface {
       HiveCipher? cipher, String? collection) async {
     late StorageBackend backend;
     if (_backend == HiveStorageBackendPreference.native ||
-        _backend is HiveStorageBackendPreferenceWebWorker) {
+        _backend is HiveStorageBackendPreferenceWebWorker ||
+        _backend == null) {
       if (path == null) {
         throw HiveError('You need to initialize Hive or '
             'provide a path to store the box.');
@@ -53,6 +54,9 @@ class BackendManager implements BackendManagerInterface {
       backend = backendVm;
     } else if (_backend == HiveStorageBackendPreference.memory) {
       backend = StorageBackendMemory(null, cipher);
+    } else {
+      throw UnimplementedError(
+          '$_backend is not a known HiveStorageBackendPreference');
     }
     return backend;
   }
