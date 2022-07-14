@@ -34,17 +34,21 @@ class StorageBackendMemory extends StorageBackend {
   bool get supportsCompaction => false;
 
   @override
-  Future<void> initialize(
-      TypeRegistry registry, Keystore keystore, bool lazy) async {
+  Future<void> initialize(TypeRegistry registry, Keystore keystore,
+      bool lazy) async {
     typeRegistry = registry;
     this.keystore = keystore;
     writeOffset = _bytes.offsetInBytes;
+    print("Hello from StorageBackendMemory");
   }
 
   @override
   Future<dynamic> readValue(Frame frame) {
     return _sync.syncRead(() async {
       var keystoreFrame = keystore!.get(frame.key)!;
+
+      print("I'm reading the value of ${frame.key}");
+      print("offset: ${keystoreFrame.offset}, length: {keystoreFrame.length}");
 
       var bytes = _bytes.sublist(keystoreFrame.offset, keystoreFrame.length);
       var reader = BinaryReaderImpl(bytes, typeRegistry!);
@@ -62,6 +66,8 @@ class StorageBackendMemory extends StorageBackend {
   @override
   Future<void> writeFrames(List<Frame> frames) {
     return _sync.syncWrite(() async {
+      print("Write frames in StorageBackendMemory");
+
       var writer = BinaryWriterImpl(typeRegistry!);
 
       for (var frame in frames) {
