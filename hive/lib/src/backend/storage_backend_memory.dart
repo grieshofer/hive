@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:hive/hive.dart';
@@ -10,6 +11,8 @@ import 'package:hive/src/box/keystore.dart';
 
 /// In-memory Storage backend
 class StorageBackendMemory extends StorageBackend {
+  final String _identifier;
+
   final HiveCipher? _cipher;
 
   final ReadWriteSync _sync;
@@ -25,7 +28,8 @@ class StorageBackendMemory extends StorageBackend {
   /// Not part of public API
   StorageBackendMemory(Uint8List? bytes, this._cipher)
       : _bytes = bytes ?? Uint8List(0),
-        _sync = ReadWriteSync();
+        _sync = ReadWriteSync(),
+        _identifier = "StorageBackendMemory-${Random.secure().nextInt(65536)}";
 
   @override
   String? get path => null;
@@ -39,7 +43,7 @@ class StorageBackendMemory extends StorageBackend {
     typeRegistry = registry;
     this.keystore = keystore;
     writeOffset = _bytes.offsetInBytes;
-    print("Hello from StorageBackendMemory with initial offset: $writeOffset");
+    print("Hello from $_identifier with initial offset: $writeOffset");
   }
 
   @override
@@ -48,7 +52,7 @@ class StorageBackendMemory extends StorageBackend {
       //var keystoreFrame = keystore!.get(frame.key)!;
 
       print(
-          "Read frame [key=${frame.key}, value=${frame.key}, length=${frame.length}, offset: ${frame.offset}]");
+          "Read frame [backend=$_identifier, key=${frame.key}, value=${frame.key}, length=${frame.length}, offset: ${frame.offset}]");
 
       var bytes = _bytes.sublist(frame.offset, frame.length);
       var reader = BinaryReaderImpl(bytes, typeRegistry!);
@@ -73,7 +77,7 @@ class StorageBackendMemory extends StorageBackend {
       for (var frame in frames) {
         frame.length = writer.writeFrame(frame, cipher: _cipher);
         print(
-            "Write frame [key=${frame.key}, value=${frame.key}, length=${frame.length}]");
+            "Write frame [backend=$_identifier, key=${frame.key}, value=${frame.key}, length=${frame.length}]");
       }
 
       var b = BytesBuilder();
