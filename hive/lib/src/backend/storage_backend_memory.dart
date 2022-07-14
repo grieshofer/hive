@@ -6,6 +6,7 @@ import 'package:hive/src/backend/vm/read_write_sync.dart';
 import 'package:hive/src/binary/binary_reader_impl.dart';
 import 'package:hive/src/binary/binary_writer_impl.dart';
 import 'package:hive/src/binary/frame.dart';
+import 'package:hive/src/binary/frame_helper.dart';
 import 'package:hive/src/box/keystore.dart';
 
 /// In-memory Storage backend
@@ -13,6 +14,8 @@ class StorageBackendMemory extends StorageBackend {
   final HiveCipher? _cipher;
 
   final ReadWriteSync _sync;
+
+  final FrameHelper _frameHelper;
 
   Uint8List _bytes;
 
@@ -23,7 +26,8 @@ class StorageBackendMemory extends StorageBackend {
   /// Not part of public API
   StorageBackendMemory(Uint8List? bytes, this._cipher)
       : _bytes = bytes ?? Uint8List(0),
-        _sync = ReadWriteSync();
+        _sync = ReadWriteSync(),
+        _frameHelper = FrameHelper();
 
   @override
   String? get path => null;
@@ -35,6 +39,18 @@ class StorageBackendMemory extends StorageBackend {
   Future<void> initialize(
       TypeRegistry registry, Keystore keystore, bool lazy) async {
     _typeRegistry = registry;
+
+    var recoveryOffset = _frameHelper.framesFromBytes(
+      _bytes,
+      keystore,
+      registry,
+      _cipher,
+    );
+
+    if (recoveryOffset != -1) {
+      throw HiveError('Wrong checksum in bytes. Box may be corrupted.');
+    }
+
     _writeOffset = _bytes.offsetInBytes;
   }
 
@@ -77,7 +93,7 @@ class StorageBackendMemory extends StorageBackend {
 
   @override
   Future<void> compact(Iterable<Frame> frames) {
-    throw UnsupportedError("Compact database not supported in memory");
+    throw UnsupportedError('This operation is unsupported for memory boxes.');
   }
 
   @override
