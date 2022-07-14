@@ -48,7 +48,7 @@ class StorageBackendMemory extends StorageBackend {
       var keystoreFrame = keystore!.get(frame.key)!;
 
       print("Current bytes stored in backend: ${_bytes.lengthInBytes}");
-      print("I'm reading the value of ${frame.key}");
+      print("I'm reading the value of ${keystoreFrame.key}");
       print("offset: ${keystoreFrame.offset}, length: ${keystoreFrame.length}");
 
       var bytes = _bytes.sublist(keystoreFrame.offset, keystoreFrame.length);
