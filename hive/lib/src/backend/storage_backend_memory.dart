@@ -43,7 +43,8 @@ class StorageBackendMemory extends StorageBackend {
     typeRegistry = registry;
     this.keystore = keystore;
     writeOffset = _bytes.offsetInBytes;
-    print("Hello from $_identifier with initial offset: $writeOffset");
+    print("[$_identifier] Hello from $_identifier "
+        "with initial offset: $writeOffset");
   }
 
   @override
@@ -51,8 +52,9 @@ class StorageBackendMemory extends StorageBackend {
     return _sync.syncRead(() async {
       //var keystoreFrame = keystore!.get(frame.key)!;
 
-      print(
-          "Read frame [backend=$_identifier, key=${frame.key}, value=${frame.key}, length=${frame.length}, offset: ${frame.offset}]");
+      print("[$_identifier] Read frame [key=${frame.key}, value=${frame.key}, "
+          "length=${frame.length}, offset= ${frame.offset}, "
+          "bytes_in_storage=${_bytes.lengthInBytes}]");
 
       var bytes = _bytes.sublist(frame.offset, frame.length);
       var reader = BinaryReaderImpl(bytes, typeRegistry!);
@@ -72,12 +74,10 @@ class StorageBackendMemory extends StorageBackend {
     return _sync.syncWrite(() async {
       var writer = BinaryWriterImpl(typeRegistry!);
 
-      print("Old offset before writeFrames(): $writeOffset");
+      print("[$_identifier] Old offset before writeFrames(): $writeOffset");
 
       for (var frame in frames) {
         frame.length = writer.writeFrame(frame, cipher: _cipher);
-        print(
-            "Write frame [backend=$_identifier, key=${frame.key}, value=${frame.key}, length=${frame.length}]");
       }
 
       var b = BytesBuilder();
@@ -88,9 +88,12 @@ class StorageBackendMemory extends StorageBackend {
       for (var frame in frames) {
         frame.offset = writeOffset;
         writeOffset += frame.length!;
+        print("[$_identifier] Write frame [backend=$_identifier, "
+            "key=${frame.key}, value=${frame.key}, length=${frame.length}], "
+            "offset_start=${frame.offset}, offset_end=${writeOffset}");
       }
 
-      print("New offset after writeFrames() $writeOffset");
+      print("[$_identifier] New offset after writeFrames(): $writeOffset");
     });
   }
 
@@ -126,6 +129,7 @@ class StorageBackendMemory extends StorageBackend {
   }
 
   void _clearMemoryBuffer() {
+    print("[$_identifier] Clearing...");
     _bytes = Uint8List(0);
     writeOffset = 0;
   }
