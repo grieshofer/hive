@@ -105,31 +105,30 @@ class StorageBackendMemory extends StorageBackend {
   @override
   Future<void> clear() {
     return _sync.syncReadWrite(() async {
-      _clearMemoryBuffer();
+      print("[$_identifier] Clear -> no-op!...");
     });
   }
 
   @override
   Future<void> close() async {
-    _clearMemoryBuffer();
+    print("[$_identifier] Close -> no-op!...");
   }
 
   @override
   Future<void> deleteFromDisk() {
     return _sync.syncReadWrite(() async {
-      _clearMemoryBuffer();
+      print("[$_identifier] Delete from disk -> no-op!...");
     });
   }
 
   @override
   Future<void> flush() {
     return _sync.syncWrite(() async {
-      _clearMemoryBuffer();
+      print("[$_identifier] Flushing -> no-op!...");
     });
   }
 
   void _clearMemoryBuffer() {
-    print("[$_identifier] Clearing...");
     _bytes = Uint8List(0);
     writeOffset = 0;
   }
