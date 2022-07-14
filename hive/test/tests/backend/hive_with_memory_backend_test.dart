@@ -18,7 +18,16 @@ void main() {
 
     await box.put('name', 'Paul');
     await box.put('address', 'Jakominiplatz 1');
-    await box.putAll({'stop1': "Jakominiplatz", "stop2": "Zentralfriedhof"});
+    await box.putAll({'stop1': "Jakominiplatz", "st6op2": "Zentralfriedhof"});
+    await box.putAll({'dd': "Jakominiplatz", "st4op2": "Zentralfriedhof"});
+    await box.putAll({'dd': "Jakominiplatz", "st5op2": "Zentralfriedhof"});
+    await box.putAll({'s': "Jakominiplatz", "st3op2": "Zentralfriedhof"});
+    await box
+        .putAll({'stopf1': "Jakominiplatz", "stwefewop2": "Zentralfriedhof"});
+    await box
+        .putAll({'stofp1': "Jakominiplatz", "stopefw2": "Zentralfriedhof"});
+    await box
+        .putAll({'stowewfp1': "Jakominiplatz", "st2op2": "Zentralfriedhof"});
 
     print(box.values);
     print(box.keys);

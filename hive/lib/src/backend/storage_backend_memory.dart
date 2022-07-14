@@ -34,12 +34,12 @@ class StorageBackendMemory extends StorageBackend {
   bool get supportsCompaction => false;
 
   @override
-  Future<void> initialize(TypeRegistry registry, Keystore keystore,
-      bool lazy) async {
+  Future<void> initialize(
+      TypeRegistry registry, Keystore keystore, bool lazy) async {
     typeRegistry = registry;
     this.keystore = keystore;
     writeOffset = _bytes.offsetInBytes;
-    print("Hello from StorageBackendMemory");
+    print("Hello from StorageBackendMemory with initial offset: $writeOffset");
   }
 
   @override
@@ -47,6 +47,7 @@ class StorageBackendMemory extends StorageBackend {
     return _sync.syncRead(() async {
       var keystoreFrame = keystore!.get(frame.key)!;
 
+      print("Current bytes stored in backend: ${_bytes.lengthInBytes}");
       print("I'm reading the value of ${frame.key}");
       print("offset: ${keystoreFrame.offset}, length: ${keystoreFrame.length}");
 
@@ -76,7 +77,10 @@ class StorageBackendMemory extends StorageBackend {
             "Write frame in StorageBackendMemory with length: ${frame.length}");
       }
 
-      _bytes = Uint8List.fromList(_bytes + writer.toBytes());
+      var b = BytesBuilder();
+      b.add(_bytes);
+      b.add(writer.toBytes());
+      _bytes = b.toBytes();
 
       for (var frame in frames) {
         frame.offset = writeOffset;
