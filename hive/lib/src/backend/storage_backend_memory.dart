@@ -56,8 +56,8 @@ class StorageBackendMemory extends StorageBackend {
           "length=${frame.length}, offset= ${frame.offset}, "
           "bytes_in_storage=${_bytes.lengthInBytes}]");
 
-      var bytes = _bytes.sublist(frame.offset, frame.length);
-      var reader = BinaryReaderImpl(bytes, typeRegistry!);
+      var bytes = _bytes.sublist(frame.offset, frame.offset + frame.length!);
+      var reader = BinaryReaderImpl(bytes, typeRegistry!, 5242880);
       var readFrame = reader.readFrame(cipher: _cipher, lazy: false);
 
       if (readFrame == null) {

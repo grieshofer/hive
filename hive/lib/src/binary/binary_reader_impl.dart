@@ -250,7 +250,7 @@ class BinaryReaderImpl extends BinaryReader {
     var frameLength = readUint32();
     if (frameLength < 8) return null;
 
-    // frame is bigger than avaible bytes
+    // frame is bigger than available bytes
     if (availableBytes < frameLength - 4) return null;
 
     var crc = _buffer.readUint32(_offset + frameLength - 8);
