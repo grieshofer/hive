@@ -45,13 +45,12 @@ class StorageBackendMemory extends StorageBackend {
   @override
   Future<dynamic> readValue(Frame frame) {
     return _sync.syncRead(() async {
-      var keystoreFrame = keystore!.get(frame.key)!;
+      //var keystoreFrame = keystore!.get(frame.key)!;
 
-      print("Current bytes stored in backend: ${_bytes.lengthInBytes}");
-      print("I'm reading the value of ${keystoreFrame.key}");
-      print("offset: ${keystoreFrame.offset}, length: ${keystoreFrame.length}");
+      print(
+          "Read frame [key=${frame.key}, value=${frame.key}, length=${frame.length}, offset: ${frame.offset}]");
 
-      var bytes = _bytes.sublist(keystoreFrame.offset, keystoreFrame.length);
+      var bytes = _bytes.sublist(frame.offset, frame.length);
       var reader = BinaryReaderImpl(bytes, typeRegistry!);
       var readFrame = reader.readFrame(cipher: _cipher, lazy: false);
 
@@ -69,12 +68,12 @@ class StorageBackendMemory extends StorageBackend {
     return _sync.syncWrite(() async {
       var writer = BinaryWriterImpl(typeRegistry!);
 
-      print("Old offset in write start: $writeOffset");
+      print("Old offset before writeFrames(): $writeOffset");
 
       for (var frame in frames) {
         frame.length = writer.writeFrame(frame, cipher: _cipher);
         print(
-            "Write frame in StorageBackendMemory with length: ${frame.length}");
+            "Write frame [key=${frame.key}, value=${frame.key}, length=${frame.length}]");
       }
 
       var b = BytesBuilder();
@@ -87,7 +86,7 @@ class StorageBackendMemory extends StorageBackend {
         writeOffset += frame.length!;
       }
 
-      print("New offset in write start: $writeOffset");
+      print("New offset after writeFrames() $writeOffset");
     });
   }
 
