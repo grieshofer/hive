@@ -23,7 +23,7 @@ void main() {
       var backend = StorageBackendMemory(null, null)
         ..typeRegistry = TypeRegistryImpl.nullImpl;
       await backend.writeFrames([Frame("key", "val")]);
-      var value = await backend.readValue(Frame('key', 'val', offset: 0));
+      var value = await backend.readValue(Frame('key', "val"));
       expect(value, "val");
     });
 

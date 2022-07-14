@@ -37,14 +37,16 @@ class StorageBackendMemory extends StorageBackend {
   Future<void> initialize(
       TypeRegistry registry, Keystore keystore, bool lazy) async {
     typeRegistry = registry;
-    keystore = keystore;
+    this.keystore = keystore;
     writeOffset = _bytes.offsetInBytes;
   }
 
   @override
   Future<dynamic> readValue(Frame frame) {
     return _sync.syncRead(() async {
-      var bytes = _bytes.sublist(frame.offset, frame.length);
+      var keystoreFrame = keystore!.get(frame.key)!;
+
+      var bytes = _bytes.sublist(keystoreFrame.offset, keystoreFrame.length);
       var reader = BinaryReaderImpl(bytes, typeRegistry!);
       var readFrame = reader.readFrame(cipher: _cipher, lazy: false);
 
