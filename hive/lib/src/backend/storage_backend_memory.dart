@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:hive/hive.dart';
@@ -11,25 +10,20 @@ import 'package:hive/src/box/keystore.dart';
 
 /// In-memory Storage backend
 class StorageBackendMemory extends StorageBackend {
-  final String _identifier;
-
   final HiveCipher? _cipher;
 
   final ReadWriteSync _sync;
 
   Uint8List _bytes;
 
-  TypeRegistry? typeRegistry;
+  TypeRegistry? _typeRegistry;
 
-  Keystore? keystore;
-
-  int writeOffset = 0;
+  int _writeOffset = 0;
 
   /// Not part of public API
   StorageBackendMemory(Uint8List? bytes, this._cipher)
       : _bytes = bytes ?? Uint8List(0),
-        _sync = ReadWriteSync(),
-        _identifier = "StorageBackendMemory-${Random.secure().nextInt(65536)}";
+        _sync = ReadWriteSync();
 
   @override
   String? get path => null;
@@ -40,24 +34,15 @@ class StorageBackendMemory extends StorageBackend {
   @override
   Future<void> initialize(
       TypeRegistry registry, Keystore keystore, bool lazy) async {
-    typeRegistry = registry;
-    this.keystore = keystore;
-    writeOffset = _bytes.offsetInBytes;
-    print("[$_identifier] Hello from $_identifier "
-        "with initial offset: $writeOffset");
+    _typeRegistry = registry;
+    _writeOffset = _bytes.offsetInBytes;
   }
 
   @override
   Future<dynamic> readValue(Frame frame) {
     return _sync.syncRead(() async {
-      //var keystoreFrame = keystore!.get(frame.key)!;
-
-      print("[$_identifier] Read frame [key=${frame.key}, value=${frame.key}, "
-          "length=${frame.length}, offset= ${frame.offset}, "
-          "bytes_in_storage=${_bytes.lengthInBytes}]");
-
       var bytes = _bytes.sublist(frame.offset, frame.offset + frame.length!);
-      var reader = BinaryReaderImpl(bytes, typeRegistry!, 5242880);
+      var reader = BinaryReaderImpl(bytes, _typeRegistry!);
       var readFrame = reader.readFrame(cipher: _cipher, lazy: false);
 
       if (readFrame == null) {
@@ -72,9 +57,7 @@ class StorageBackendMemory extends StorageBackend {
   @override
   Future<void> writeFrames(List<Frame> frames) {
     return _sync.syncWrite(() async {
-      var writer = BinaryWriterImpl(typeRegistry!);
-
-      print("[$_identifier] Old offset before writeFrames(): $writeOffset");
+      var writer = BinaryWriterImpl(_typeRegistry!);
 
       for (var frame in frames) {
         frame.length = writer.writeFrame(frame, cipher: _cipher);
@@ -86,14 +69,9 @@ class StorageBackendMemory extends StorageBackend {
       _bytes = b.toBytes();
 
       for (var frame in frames) {
-        frame.offset = writeOffset;
-        writeOffset += frame.length!;
-        print("[$_identifier] Write frame [backend=$_identifier, "
-            "key=${frame.key}, value=${frame.key}, length=${frame.length}], "
-            "offset_start=${frame.offset}, offset_end=${writeOffset}");
+        frame.offset = _writeOffset;
+        _writeOffset += frame.length!;
       }
-
-      print("[$_identifier] New offset after writeFrames(): $writeOffset");
     });
   }
 
@@ -105,31 +83,29 @@ class StorageBackendMemory extends StorageBackend {
   @override
   Future<void> clear() {
     return _sync.syncReadWrite(() async {
-      print("[$_identifier] Clear -> no-op!...");
+      _clearMemoryBuffer();
     });
   }
 
   @override
   Future<void> close() async {
-    print("[$_identifier] Close -> no-op!...");
+    _clearMemoryBuffer();
   }
 
   @override
   Future<void> deleteFromDisk() {
     return _sync.syncReadWrite(() async {
-      print("[$_identifier] Delete from disk -> no-op!...");
+      _clearMemoryBuffer();
     });
   }
 
+  /// Nothing to flush to disk as we act directly in-memory
   @override
-  Future<void> flush() {
-    return _sync.syncWrite(() async {
-      print("[$_identifier] Flushing -> no-op!...");
-    });
-  }
+  Future<void> flush() => Future.value();
 
+  /// Clear the memory buffer and reset the offset
   void _clearMemoryBuffer() {
     _bytes = Uint8List(0);
-    writeOffset = 0;
+    _writeOffset = 0;
   }
 }
